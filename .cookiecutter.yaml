@@ -1,0 +1,6 @@
+default_context:
+    description: Android form filler
+    github_actions_env:
+        GITHUB_TOKEN: ${{ github.token }}
+        PATH: .venv/bin:/home/runner/.local/bin:/home/runner/.local/share/mise/shims:/usr/bin:/bin
+    languages: Android,Gradle,Java,Node,Python
