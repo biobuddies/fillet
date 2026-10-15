@@ -4,3 +4,5 @@ default_context:
         GITHUB_TOKEN: ${{ github.token }}
         PATH: .venv/bin:/home/runner/.local/bin:/home/runner/.local/share/mise/shims:/usr/bin:/bin
     languages: Android,Gradle,Java,Node,Python
+    node_dev_dependencies:
+        prettier-plugin-java: '*'
