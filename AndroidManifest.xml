@@ -3,5 +3,23 @@
     xmlns:android='http://schemas.android.com/apk/res/android'
     package='es.biobuddi.fillet'
 >
-    <application android:label='Fillet' />
+    <application android:label='Fillet'>
+        <activity android:exported='true' android:name='.EnableActivity'>
+            <intent-filter>
+                <action android:name='android.intent.action.MAIN' />
+                <category android:name='android.intent.category.LAUNCHER' />
+            </intent-filter>
+        </activity>
+        <service
+            android:exported='true'
+            android:label='Fillet'
+            android:name='.FillService'
+            android:permission='android.permission.BIND_AUTOFILL_SERVICE'
+        >
+            <intent-filter>
+                <action android:name='android.service.autofill.AutofillService' />
+            </intent-filter>
+            <meta-data android:name='android.autofill' android:resource='@xml/autofill_service' />
+        </service>
+    </application>
 </manifest>

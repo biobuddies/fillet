@@ -53,7 +53,8 @@ set -o errexit -o nounset -o pipefail
 python -m pytest --verbose
 rm -rf build/test-classes
 javac -classpath "$ANDROID_JAR" -d build/test-classes --release 17 $(find src test -name '*.java')
-java -classpath "build/test-classes:$ANDROID_JAR" -enableassertions es.biobuddi.fillet.GlobTest
+find test -name '*.java' | sed -E 's,^test/,es.biobuddi.fillet.,; s,\.java$,,' \
+    | xargs -I {} java -classpath "build/test-classes:$ANDROID_JAR" -enableassertions {}
 '''
 
 [tools]
