@@ -1,0 +1,60 @@
+# Override .config/mise.toml, which mise cookiecutter clobbers
+[env]
+ANDROID_HOME = "{{ get_env(name='ANDROID_HOME', default=env.HOME ~ '/.local/share/android-sdk') }}"
+ANDROID_BUILD_TOOLS = '{{ env.ANDROID_HOME }}/build-tools/36.1.0'
+ANDROID_JAR = '{{ env.ANDROID_HOME }}/platforms/android-36/android.jar'
+
+[tasks.android-sdk]
+# GitHub Actions runners preinstall the SDK
+run = '''
+#!/usr/bin/env bash
+set -o errexit -o nounset -o pipefail
+[[ -x $ANDROID_BUILD_TOOLS/d8 && -f $ANDROID_JAR ]] && exit 0
+android --sdk="$ANDROID_HOME" sdk install "build-tools/${ANDROID_BUILD_TOOLS##*/}" \
+    "platforms/$(basename "$(dirname "$ANDROID_JAR")")"
+'''
+
+[tasks.build]
+# No Gradle: Android Gradle Plugin downloads hundreds of jars per cold build
+depends = ['android-sdk']
+run = '''
+#!/usr/bin/env bash
+set -o errexit -o nounset -o pipefail
+rm -rf build
+mkdir -p build/classes ~/.android
+"$ANDROID_BUILD_TOOLS/aapt2" compile --dir res -o build/resources.zip
+"$ANDROID_BUILD_TOOLS/aapt2" link build/resources.zip -I "$ANDROID_JAR" \
+    --manifest AndroidManifest.xml --min-sdk-version 33 --target-sdk-version 36 \
+    --version-code 1 --version-name 0 -o build/unsigned.apk
+javac -classpath "$ANDROID_JAR" -d build/classes --release 17 $(find src -name '*.java')
+"$ANDROID_BUILD_TOOLS/d8" --lib "$ANDROID_JAR" --min-api 33 --output build \
+    $(find build/classes -name '*.class')
+(cd build && zip -q unsigned.apk classes.dex)
+"$ANDROID_BUILD_TOOLS/zipalign" -f 4 build/unsigned.apk build/aligned.apk
+[[ -f ~/.android/debug.keystore ]] || keytool -genkeypair -alias androiddebugkey \
+    -dname 'CN=Android Debug,O=Android,C=US' -keyalg RSA -keypass android \
+    -keystore ~/.android/debug.keystore -storepass android -validity 10000
+"$ANDROID_BUILD_TOOLS/apksigner" sign --ks ~/.android/debug.keystore --ks-pass pass:android \
+    --out build/fillet.apk build/aligned.apk
+'''
+
+# dup .config/mise.toml tasks.prettier-write; --plugin on the first command drops config plugins
+[tasks.prettier-write]
+run = [
+    '''mise run-on-sources prettier "*.{css,html,js,json,jsx,toml,ts,tsx,yaml} :!*.dj.html :!*.j2.html :!*.j2.json :!*.j2.yaml" --write "$@"''',
+    'mise run-on-sources prettier "*.java" --plugin=prettier-plugin-java --write "$@"',
+]
+
+[tasks.test]
+depends = ['android-sdk']
+run = '''
+#!/usr/bin/env bash
+set -o errexit -o nounset -o pipefail
+python -m pytest --verbose
+rm -rf build/test-classes
+javac -classpath "$ANDROID_JAR" -d build/test-classes --release 17 $(find src test -name '*.java')
+java -classpath "build/test-classes:$ANDROID_JAR" -enableassertions es.biobuddi.fillet.GlobTest
+'''
+
+[tools]
+android-cli = 'latest'
