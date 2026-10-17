@@ -38,6 +38,17 @@ javac -classpath "$ANDROID_JAR" -d build/classes --release 17 $(find src -name '
     --out build/fillet.apk build/aligned.apk
 '''
 
+[tasks.deploy]
+# Actions artifacts need ACTIONS_RUNTIME_TOKEN, which run steps lack; releases need only GITHUB_TOKEN
+run = '''
+#!/usr/bin/env bash
+set -o errexit -o nounset -o pipefail
+tabr=${1:?missing TABR}
+gh release view "$tabr" >/dev/null 2>&1 \
+    || gh release create "$tabr" --prerelease --notes '' --target "$(git rev-parse HEAD)"
+gh release upload "$tabr" build/fillet.apk --clobber
+'''
+
 # dup .config/mise.toml tasks.prettier-write; --plugin on the first command drops config plugins
 [tasks.prettier-write]
 run = [
