@@ -1,6 +1,6 @@
 concurrency:
-    group: ${{ github.workflow }}-${{ github.event_name == 'push' && 'main' || github.ref }}
-    cancel-in-progress: ${{ github.event_name != 'push' }}
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 defaults:
     run:
@@ -29,6 +29,7 @@ jobs:
             - uses: jdx/mise-action@v4
               with:
                   experimental: true
+                  log_level: error
             - run: mise set-environment
             - run: mise pre-commit-all
     tabularize:
@@ -43,6 +44,7 @@ jobs:
             - uses: jdx/mise-action@v4
               with:
                   experimental: true
+                  log_level: error
                   install: false
             - run: mise tabularize
     test:
@@ -57,6 +59,7 @@ jobs:
             - uses: jdx/mise-action@v4
               with:
                   experimental: true
+                  log_level: error
             - run: mise checkout
             - run: mise test
 
@@ -75,11 +78,12 @@ jobs:
             - uses: jdx/mise-action@v4
               with:
                   experimental: true
+                  log_level: error
             # TABR is the branch, so FQDN is the preview or production domain
             - run: mise set-environment
             - run: mise build
             - run: mise deploy "${{ github.head_ref || github.ref_name }}"
-            - if: github.event_name == 'push'
+            - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
               run: |
                   expected=$(git ls-remote --refs origin refs/heads/prod | cut -f 1)
                   git push "--force-with-lease=refs/heads/prod:$expected" origin HEAD:prod
