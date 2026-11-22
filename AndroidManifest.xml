@@ -3,8 +3,14 @@
     xmlns:android='http://schemas.android.com/apk/res/android'
     package='es.biobuddi.fillet'
 >
+    <uses-permission android:name='android.permission.BLUETOOTH_CONNECT' />
     <application android:label='Fillet'>
-        <activity android:exported='true' android:name='.EnableActivity'>
+        <activity android:exported='false' android:name='.EnableActivity' />
+        <activity
+            android:exported='true'
+            android:name='.MetadataActivity'
+            android:theme='@android:style/Theme.DeviceDefault.NoActionBar'
+        >
             <intent-filter>
                 <action android:name='android.intent.action.MAIN' />
                 <category android:name='android.intent.category.LAUNCHER' />

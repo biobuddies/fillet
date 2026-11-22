@@ -1,7 +1,13 @@
 # fillet
 
-Android form filler: an [autofill service](https://developer.android.com/identity/autofill/autofill-services)
-offering hard-coded profiles, so far one, The American Church in Paris.
+Android car stereo billboard: type album, artist, and track (37 characters each, a 2011 Honda
+Odyssey row) and tap Set to show them over Bluetooth AVRCP. A nonempty Device renames the phone's
+Bluetooth adapter; cars may show the new name only after reconnecting. Fillet loops silent audio so
+Android routes its media session, not another player's, to the car.
+
+Fillet also holds a dormant form filler: an
+[autofill service](https://developer.android.com/identity/autofill/autofill-services) offering
+hard-coded profiles, so far one, The American Church in Paris.
 
 ## Associations
 
@@ -24,5 +30,5 @@ mise build
 adb install build/fillet.apk
 ```
 
-Then open Fillet, which asks Android to make it the autofill service. Chrome also needs Settings,
+For autofill, enable Fillet in Settings, Passwords & accounts. Chrome also needs Settings,
 Autofill services, Autofill using another service.
